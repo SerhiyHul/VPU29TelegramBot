@@ -1,29 +1,14 @@
-import os
 import logging
 
-from telegram import Update, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
-from dotenv import load_dotenv
-load_dotenv()
 
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-
-
-async def hello(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(f'Здоров {update.effective_user.first_name}')
-
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    keyboard = [
-        [KeyboardButton('/hello')],
-        [KeyboardButton('Share my location', request_location=True)],
-        [KeyboardButton('Share my contact', request_contact=True)]
-    ]
-    reply_text = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
-    await update.message.reply_text(f"How can i help you {update.effective_user.first_name}?", reply_markup=reply_text)
-
+from config.config import TELEGRAM_TOKEN
+from heandlers.hello_heandler import hello
+from heandlers.start_headler import start
+from heandlers.location_heandler import location
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.message.text.lower()
@@ -44,21 +29,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     else:
         await update.message.reply_text(f"I don't know how to read this")
 
-
-async def location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    lat = update.message.location.latitude
-    lon = update.message.location.longitude
-    await update.message.reply_text(f"lat = {lat}, lon = {lon}")
-async def contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.contact.user_id
-    first_name = update.message.contact.first_name
-    last_name = update.message.contact.last_name
-    await update.message.reply_text(
-        f"""
-        user_id = {user_id}
-        first_name = {first_name}        
-        last_name = {last_name}
-        """, reply_markup=ReplyKeyboardRemove())
+from heandlers.contact_heandler import contact
 
 
 app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
